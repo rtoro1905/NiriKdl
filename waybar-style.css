@@ -1,0 +1,119 @@
+/* ============================================================================
+   WAYBAR STYLE — paleta TokyoNight, a juego con niri (#7aa2f7 / #1a1b26)
+   Destino: ~/.config/waybar/style.css
+   ============================================================================ */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+window#waybar {
+    background: #1a1b26;
+    color: #c0caf5;
+}
+
+/* ------------------------------------------------------------ Workspaces */
+#workspaces button {
+    padding: 0 10px;
+    margin: 4px 2px;
+    background: transparent;
+    color: #565f89;
+    border-radius: 6px;
+}
+
+#workspaces button:hover {
+    background: #292e42;
+    color: #c0caf5;
+}
+
+#workspaces button.active,
+#workspaces button.focused {
+    background: #292e42;
+    color: #7aa2f7;
+}
+
+#workspaces button.urgent {
+    background: #f7768e;
+    color: #1a1b26;
+}
+
+/* ------------------------------------------------------------ Ventana */
+#window {
+    color: #a9b1d6;
+    padding: 0 8px;
+}
+
+window#waybar.empty #window {
+    background: transparent;
+}
+
+/* ------------------------------------------------------------ Módulos */
+#clock,
+#custom-docker,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#pulseaudio,
+#network,
+#battery,
+#language,
+#tray {
+    padding: 0 10px;
+    margin: 4px 0;
+    background: #24283b;
+    border-radius: 6px;
+}
+
+#clock {
+    color: #7aa2f7;
+    font-weight: bold;
+}
+
+#custom-docker { color: #7dcfff; }
+#cpu           { color: #9ece6a; }
+#memory        { color: #bb9af7; }
+#temperature   { color: #e0af68; }
+#backlight     { color: #e0af68; }
+#pulseaudio    { color: #7aa2f7; }
+#network       { color: #73daca; }
+#battery       { color: #9ece6a; }
+#language      { color: #c0caf5; }
+
+/* ------------------------------------------------------------ Estados */
+#cpu.warning,
+#memory.warning,
+#battery.warning:not(.charging) {
+    color: #e0af68;
+}
+
+#cpu.critical,
+#memory.critical,
+#temperature.critical,
+#battery.critical:not(.charging) {
+    color: #f7768e;
+}
+
+#battery.charging,
+#battery.plugged {
+    color: #9ece6a;
+}
+
+#network.disconnected,
+#pulseaudio.muted {
+    color: #565f89;
+}
+
+tooltip {
+    background: #1a1b26;
+    border: 1px solid #7aa2f7;
+    border-radius: 6px;
+}
+
+tooltip label {
+    color: #c0caf5;
+}

@@ -1,0 +1,152 @@
+// ============================================================================
+// WAYBAR para NIRI — dev full-stack (Django + Vue 3 + Docker)
+// Destino: ~/.config/waybar/config.jsonc   (el CSS va en style.css, misma carpeta)
+// Requiere: waybar, ttf-jetbrains-mono-nerd, pipewire-pulse
+// Recargar tras editar:  pkill waybar; waybar &   (o: pkill -SIGUSR2 waybar)
+// ============================================================================
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 6,
+
+    // ---------------------------------------------------------------- Layout
+    "modules-left": [
+        "niri/workspaces",
+        "niri/window"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "custom/docker",
+        "cpu",
+        "memory",
+        "temperature",
+        "backlight",
+        "pulseaudio",
+        "network",
+        "battery",
+        "niri/language",
+        "tray"
+    ],
+
+    // ---------------------------------------------------------------- Niri
+    // Workspaces nombrados: code / terminal / web / db
+    "niri/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+            "code": "",
+            "terminal": "",
+            "web": "",
+            "db": "",
+            "default": ""
+        },
+        "tooltip": true
+    },
+
+    // Título de la ventana enfocada
+    "niri/window": {
+        "format": "{title}",
+        "max-length": 60,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": "󰈹 $1",
+            "(.*) - Zen Browser": "󰖟 $1",
+            "(.*) - Visual Studio Code": "󰨞 $1"
+        },
+        "icon": false
+    },
+
+    // Solo aparece si defines 2+ layouts en input.keyboard.xkb (ej. "latam,us")
+    "niri/language": {
+        "format": " {short}"
+    },
+
+    // ---------------------------------------------------------------- Reloj
+    "clock": {
+        "format": "{:%a %d %b  %H:%M}",
+        "format-alt": "{:%Y-%m-%d  %H:%M:%S}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "right",
+            "on-scroll": 1
+        }
+    },
+
+    // ---------------------------------------------------------------- Docker
+    // Muestra cuántos contenedores corren. Se oculta si no hay ninguno.
+    // Requiere estar en el grupo `docker`.
+    "custom/docker": {
+        "exec": "n=$(docker ps -q 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \"$n\"",
+        "format": " {}",
+        "interval": 10,
+        "tooltip": false,
+        "on-click": "foot -e sh -c 'docker ps; exec fish'"
+    },
+
+    // ---------------------------------------------------------------- Sistema
+    "cpu": {
+        "format": " {usage}%",
+        "interval": 3,
+        "states": { "warning": 70, "critical": 90 }
+    },
+
+    "memory": {
+        "format": " {used:0.1f}G",
+        "tooltip-format": "{used:0.1f} GiB de {total:0.1f} GiB ({percentage}%)",
+        "interval": 5,
+        "states": { "warning": 70, "critical": 90 }
+    },
+
+    // Si marca 0° o un valor raro, busca la zona correcta:
+    //   for z in /sys/class/thermal/thermal_zone*; do echo $z $(cat $z/type); done
+    // y usa la de tipo x86_pkg_temp con "thermal-zone": N
+    "temperature": {
+        "thermal-zone": 0,
+        "critical-threshold": 85,
+        "format": "{icon} {temperatureC}°",
+        "format-icons": ["", "", ""]
+    },
+
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "on-scroll-up": "brightnessctl set 5%+",
+        "on-scroll-down": "brightnessctl set 5%-"
+    },
+
+    // `pulseaudio` funciona con PipeWire gracias a pipewire-pulse
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": " mute",
+        "format-icons": {
+            "default": ["", "", ""]
+        },
+        "scroll-step": 5,
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+
+    "network": {
+        "format-wifi": " {essid}",
+        "format-ethernet": " {ipaddr}",
+        "format-disconnected": "󰖪 sin red",
+        "tooltip-format-wifi": "{essid} · {signalStrength}% · {ipaddr}",
+        "tooltip-format-ethernet": "{ifname} · {ipaddr}",
+        "interval": 5
+    },
+
+    "battery": {
+        "states": { "warning": 25, "critical": 12 },
+        "format": "{icon} {capacity}%",
+        "format-charging": " {capacity}%",
+        "format-plugged": " {capacity}%",
+        "format-icons": ["", "", "", "", ""],
+        "tooltip-format": "{timeTo}"
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}

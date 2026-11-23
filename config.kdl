@@ -1,0 +1,263 @@
+// ============================================================================
+// NIRI CONFIG — FULL-STACK DEV (Django + Vue 3 + Docker)
+// Destino: ~/.config/niri/config.kdl
+// Hardware: laptop Intel i5 11th Gen (Tiger Lake) · Arch Linux
+// Validar sintaxis tras editar:  niri validate
+// Niri recarga la config solo al guardar el archivo (sin reiniciar).
+// Tecla "Mod" = Super (Windows) en sesión real; = Alt si niri corre anidado.
+// ============================================================================
+
+
+// ----------------------------------------------------------------------------
+// 1. ENTRADA
+// ----------------------------------------------------------------------------
+input {
+    keyboard {
+        xkb {
+            // "latam" = Latinoamérica. Usa "es" si tu laptop es teclado de España.
+            layout "latam"
+            // OPCIONAL: Caps Lock actúa como Escape (muy cómodo en Neovim).
+            // Descomenta si te interesa:
+            // options "caps:escape"
+        }
+        repeat-delay 250
+        repeat-rate 35
+    }
+
+    touchpad {
+        tap                  // tocar = clic
+        natural-scroll       // scroll tipo móvil
+        dwt                  // desactiva el touchpad mientras escribes
+        accel-speed 0.1
+        // click-method "clickfinger"  // OPCIONAL: 1 dedo=izq, 2=derecho, 3=medio
+    }
+
+    // El foco sigue al mouse, pero sin desplazar la cinta más de 10% por accidente.
+    // Si el touchpad te cambia el foco sin querer, borra esta línea.
+    focus-follows-mouse max-scroll-amount="10%"
+}
+
+
+// ----------------------------------------------------------------------------
+// 2. PANTALLA
+// ----------------------------------------------------------------------------
+// Verifica el nombre real con:  niri msg outputs
+output "eDP-1" {
+    scale 1.0
+    // En 14" Full HD, si el texto se ve chico prueba 1.15 o 1.25.
+}
+
+
+// ----------------------------------------------------------------------------
+// 3. VARIABLES DE ENTORNO
+// ----------------------------------------------------------------------------
+environment {
+    // VS Code / Electron / Chromium usan Wayland nativo (texto nítido, sin blur).
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+}
+
+
+// ----------------------------------------------------------------------------
+// 4. DISEÑO Y ESTÉTICA
+// ----------------------------------------------------------------------------
+layout {
+    gaps 8
+    center-focused-column "never"
+
+    // Ciclo con Mod+R: 33% → 50% → 66%
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#7aa2f7"    // azul TokyoNight
+        inactive-color "#292e42"
+    }
+
+    border {
+        off    // el focus-ring ya indica el foco; sin doble borde
+    }
+}
+
+prefer-no-csd   // pide a las apps no dibujar su propia barra de título
+
+// Pantalla de atajos al iniciar: desactivada (Mod+Shift+/ la muestra cuando quieras)
+hotkey-overlay {
+    skip-at-startup
+}
+
+// El directorio debe existir:  mkdir -p ~/Pictures/Screenshots
+screenshot-path "~/Pictures/Screenshots/Screenshot_%Y-%m-%d_%H-%M-%S.png"
+
+// Animaciones más rápidas (slowdown < 1 = más veloz)
+animations {
+    slowdown 0.7
+}
+
+
+// ----------------------------------------------------------------------------
+// 5. INICIO AUTOMÁTICO
+// ----------------------------------------------------------------------------
+// NOTA: xwayland-satellite NO se lanza aquí. Niri (>= 25.08) lo inicia solo,
+// bajo demanda, si está instalado. Lanzarlo a mano provoca conflictos.
+
+spawn-at-startup "waybar"     // barra de estado
+spawn-at-startup "mako"       // notificaciones
+
+// Fondo sólido (cero consumo)
+spawn-at-startup "swaybg" "-c" "#1a1b26"
+
+// Historial del portapapeles (texto e imágenes).
+// AVISO: guarda TODO lo copiado, incluidas contraseñas. Limpia con: cliphist wipe
+spawn-at-startup "wl-paste" "--type" "text"  "--watch" "cliphist" "store"
+spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
+
+// Bloqueo a los 10 min, pantalla apagada a los 15 min, y bloqueo antes de suspender.
+spawn-at-startup "swayidle" "-w" \
+    "timeout" "600" "swaylock -f -c 1a1b26" \
+    "timeout" "900" "niri msg action power-off-monitors" \
+    "before-sleep" "swaylock -f -c 1a1b26"
+
+// OPCIONAL: agente polkit (diálogos de contraseña de apps gráficas). Requiere `polkit-gnome`.
+// spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+
+
+// ----------------------------------------------------------------------------
+// 6. WORKSPACES NOMBRADOS (en este orden vertical)
+// ----------------------------------------------------------------------------
+workspace "code"      // Neovim / editor
+workspace "terminal"  // docker compose, logs de Django, Vite
+workspace "web"       // navegador: frontend Vue, DRF Browsable API, docs
+workspace "db"        // clientes de BD, Bruno/Postman
+
+
+// ----------------------------------------------------------------------------
+// 7. REGLAS DE VENTANA
+// ----------------------------------------------------------------------------
+// Regla global: esquinas redondeadas y contenido recortado a esas esquinas.
+window-rule {
+    geometry-corner-radius 6
+    clip-to-geometry true
+}
+
+// Navegadores → workspace "web", al 66% (deja espacio para DevTools).
+window-rule {
+    match app-id=r#"^(firefox|zen|chromium|brave-browser)$"#
+    open-on-workspace "web"
+    default-column-width { proportion 0.66667; }
+}
+
+// Editores gráficos → workspace "code".
+window-rule {
+    match app-id=r#"^(code|dev\.zed\.Zed)$"#
+    open-on-workspace "code"
+    default-column-width { proportion 0.66667; }
+}
+
+// Diálogos flotantes (en inglés y español).
+window-rule {
+    match title=r#"^(Open File|Save As|Confirm|Abrir archivo|Guardar como|Preferencias).*$"#
+    open-floating true
+}
+
+// OPCIONAL: clientes de BD / API → workspace "db".
+// Confirma el app-id exacto con `niri msg windows` y ajusta.
+// window-rule {
+//     match app-id=r#"^(DBeaver|Bruno|Postman|dbeaver)$"#
+//     open-on-workspace "db"
+// }
+
+// NOTA: no hay regla para `foot` a propósito: Neovim también corre en foot y
+// forzaría todas las terminales al workspace "terminal". Mueve con Mod+Shift+2.
+
+
+// ----------------------------------------------------------------------------
+// 8. ATAJOS DE TECLADO
+// ----------------------------------------------------------------------------
+binds {
+    // --- Lanzadores ---
+    Mod+Return  { spawn "foot"; }
+    Mod+Space   { spawn "fuzzel"; }
+    Mod+E       { spawn "foot" "-e" "fish"; }
+    Mod+Escape  { spawn "swaylock" "-f" "-c" "1a1b26"; }
+
+    // --- Portapapeles y capturas ---
+    Mod+V       { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
+    Print       { screenshot; }            // selección interactiva
+    Mod+Shift+S { screenshot; }            // igual, atajo estilo Windows
+    Ctrl+Print  { screenshot-screen; }     // pantalla completa
+    Alt+Print   { screenshot-window; }     // ventana enfocada
+
+    // --- Gestión de ventanas ---
+    Mod+Q       { close-window; }
+    Mod+F       { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+T       { toggle-window-floating; }
+    Mod+C       { center-column; }
+    Mod+W       { toggle-column-tabbed-display; }  // pestañas dentro de una columna
+    Mod+O       { toggle-overview; }               // vista general de workspaces
+
+    // --- Navegación: flechas y estilo Vim ---
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+
+    Mod+H { focus-column-left; }
+    Mod+L { focus-column-right; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+
+    // --- Mover ventanas en la cinta ---
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+H     { move-column-left; }
+    Mod+Shift+L     { move-column-right; }
+
+    // --- Apilar/separar ventanas en una columna (ej. logs Django + Vite) ---
+    Mod+Comma  { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    // --- Tamaños ---
+    Mod+R           { switch-preset-column-width; }
+    Mod+Minus       { set-column-width "-10%"; }
+    Mod+Equal       { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // --- Workspaces del stack ---
+    Mod+1 { focus-workspace "code"; }
+    Mod+2 { focus-workspace "terminal"; }
+    Mod+3 { focus-workspace "web"; }
+    Mod+4 { focus-workspace "db"; }
+
+    Mod+Shift+1 { move-column-to-workspace "code"; }
+    Mod+Shift+2 { move-column-to-workspace "terminal"; }
+    Mod+Shift+3 { move-column-to-workspace "web"; }
+    Mod+Shift+4 { move-column-to-workspace "db"; }
+
+    // Recorrer workspaces en orden
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up   { focus-workspace-up; }
+
+    // --- Teclas de hardware ---
+    // Volumen limitado a 100% (-l 1.0) para evitar distorsión
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "-l" "1.0" "@DEFAULT_AUDIO_SINK@" "5%+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+    XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "5%+"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
+
+    // --- Sistema ---
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Shift+P     { power-off-monitors; }
+    Mod+Shift+E     { quit; }
+}
